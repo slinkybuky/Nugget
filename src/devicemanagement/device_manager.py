@@ -292,9 +292,10 @@ class DeviceManager:
     def get_app_hashes(self, bundle_ids: list[str]) -> dict:
         return asyncio.run(self._get_app_hashes(bundle_ids))
     async def _get_app_hashes(self, bundle_ids: list[str]) -> dict:
-        ld = await create_using_usbmux(serial=self.data_singleton.current_device.udid)
-        apps = await ld.get_apps(application_type="Any", calculate_sizes=False)
-        await ld.close()
+    ld = await create_using_usbmux(serial=self.data_singleton.current_device.udid)
+    async with InstallationProxyService(ld) as ips:
+        apps = await ips.get_apps(application_type="Any", calculate_sizes=False)
+    await ld.close()
         results = {}
         for bundle_id in bundle_ids:
             app_info = apps[bundle_id]
